@@ -1,50 +1,88 @@
 import requests
 import config
-#import json
+import json
 from time import sleep
+from operator import itemgetter
 
+# These leaderboards will be populated with lists of dictionaries of player
+# stats that can then be sorted and displayed
+leaderboards = {"Leaderboards": {"Lifetime":[], "SoloStats":[], "DuoStats":[],
+    "SquadStats":[], "CurrSolo":[], "CurrDuo":[], "CurrSquad":[]}}
+
+# will store raw json data from fortnite tracker for all Players
+# format will be { player name : fortnitetracker data }
+raw_data = {}
+
+# initialize stuff, right now just goes straight to main menu
 def main():
+    menu()
 
-    headers = {
-        'TRN-Api-Key': config.api_key
-    }
+# main menu, user can select what they want to do from here
+def menu():
+    print("[1] Add/Remove Players")
+    print("[2] View Individual Stats")
+    print("[3] View Group Leaderboards")
 
-    name = input("Fortnite Name: ")
-    while (name != "e"):
-        request_string = "https://api.fortnitetracker.com/v1/profile/pc/" + name
-        response = requests.get(request_string, headers = headers)
+    selection = input("Enter Corresponding Menu Number: ")
+    if (selection == "1"):
+        add_remove_players()
+    elif (selection == "2"):
+        view_individual_stats()
+
+# add or remove a players data from the group leaderboards
+def add_remove_players():
+    names = input("Fortnite Name: ")
+    names = names.replace(" ", "")
+    name = names.split(",")
+
+    print(name)
+    for username in name:
+        request_string = "https://api.fortnitetracker.com/v1/profile/pc/" + username
+        response = requests.get(request_string, headers = config.headers)
         #print(response.text)
         data = response.json()
-        print_stats(data)
-        #p2 = solo
-        #p10 = duo
-        #p9 = squad
-        #lifeTimeStats
-        name = input("Fortnite Name: ")
+        print(username)
+
+        #user = {username: data}
+        raw_data[username] = data
+        populate_leaderboards()
+        #name = input("Fortnite Name: ")
         sleep(1)
+    menu()
 
+# view the stored stats for a player given the username, currently it asks
+# for the name after the user has already selected this menu item, may
+# change that so that a user can enter "2 snipe_celly34" to look up
+# snipe_celly34's stats with one command
+def view_individual_stats():
+    name = input("Enter Users name: ")
+    print_stats(raw_data[name])
+    menu()
 
+# populate the group leaderboard dictionary
+def populate_leaderboards():
+    print("populating leaderboards")
 
+# print out select stats from the raw data dictionary for a given player,
+# will clean this up when I start storing all the data is cleaner dictionaries
+# instead of pulling from the raw JSON.
 def print_stats(data):
     print("Name: " + data["epicUserHandle"])
     print("Platform: " + data["platformNameLong"])
 
     lifetime_stats = data["lifeTimeStats"]
+    print_lifetime_stats(lifetime_stats)
 
     solo_lifetime_stats = data["stats"]["p2"]
     duo_lifetime_stats = data["stats"]["p10"]
     squad_lifetime_stats = data["stats"]["p9"]
-
-    solo_current_stats = data["stats"]["curr_p2"]
-    duo_current_stats = data["stats"]["curr_p10"]
-    squad_current_stats = data["stats"]["curr_p9"]
-
-    print_lifetime_stats(lifetime_stats)
-
     print_solo_lifetime_stats(solo_lifetime_stats)
     print_duo_lifetime_stats(duo_lifetime_stats)
     print_squad_lifetime_stats(squad_lifetime_stats)
 
+    solo_current_stats = data["stats"]["curr_p2"]
+    duo_current_stats = data["stats"]["curr_p10"]
+    squad_current_stats = data["stats"]["curr_p9"]
     print_solo_current_stats(solo_current_stats)
     print_duo_current_stats(duo_current_stats)
     print_squad_current_stats(squad_current_stats)
@@ -118,6 +156,12 @@ def print_squad_current_stats(squad_current_stats):
     print("Kills: " + squad_current_stats["kills"]["value"])
     print("K/D: " + squad_current_stats["kd"]["value"])
 
+#program runs here
+if __name__ == '__main__':
+    main()
+
+#=============== FUTURE IDEAS ===============#
+
 # Leaderboard ideas
 #   1. Most wins (Total)
 #   2. Most kills (Total)
@@ -146,6 +190,11 @@ def print_squad_current_stats(squad_current_stats):
 #   Select one Leaderboard
 #   Select all Leaderboards
 
-#program runs here
-if __name__ == '__main__':
-    main()
+# Some test code for sorting and printing dictionaries
+#print(config.leaderboard["Leaderboards"]["Lifetime"])
+#config.leaderboard["Leaderboards"]["Lifetime"].append({"name": "test", "value": 4})
+#config.leaderboard["Leaderboards"]["Lifetime"].append({"name": "test2", "value": 6})
+#print(config.leaderboard["Leaderboards"]["Lifetime"])
+#newlist = sorted(config.leaderboard["Leaderboards"]["Lifetime"], key=itemgetter('value'), reverse=True)
+#print(newlist)
+#print(newlist[0]["value"])
