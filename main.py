@@ -4,9 +4,12 @@ import json
 from time import sleep
 from operator import itemgetter
 
+# Solo leaderboards
+solo_leaderboards = {}
+
 # These leaderboards will be populated with lists of dictionaries of player
 # stats that can then be sorted and displayed
-leaderboards = {"Leaderboards": {"Lifetime":[], "SoloStats":[], "DuoStats":[],
+group_leaderboards = {"Leaderboards": {"Lifetime":[], "SoloStats":[], "DuoStats":[],
     "SquadStats":[], "CurrSolo":[], "CurrDuo":[], "CurrSquad":[]}}
 
 # will store raw json data from fortnite tracker for all Players
@@ -44,8 +47,7 @@ def add_remove_players():
         print(username)
 
         #user = {username: data}
-        raw_data[username] = data
-        populate_leaderboards()
+        populate_solo_leaderboards(username, data)
         #name = input("Fortnite Name: ")
         sleep(1)
     menu()
@@ -60,8 +62,92 @@ def view_individual_stats():
     menu()
 
 # populate the group leaderboard dictionary
-def populate_leaderboards():
+def populate_solo_leaderboards(username, data):
     print("populating leaderboards")
+    raw_data[username] = data
+
+    lifetime_stats = data["lifeTimeStats"]
+
+    solo_lifetime_stats = data["stats"]["p2"]
+    duo_lifetime_stats = data["stats"]["p10"]
+    squad_lifetime_stats = data["stats"]["p9"]
+
+    solo_current_stats = data["stats"]["curr_p2"]
+    duo_current_stats = data["stats"]["curr_p10"]
+    squad_current_stats = data["stats"]["curr_p9"]
+
+    solo_leaderboards[username] = {"lifetime": {}, "solo": {}, "duo": {},
+        "squads": {}, "curr_solo": {}, "curr_duo": {}, "curr_squads": {}}
+
+    solo_leaderboards[username]["lifetime"] = {
+        "Matches Played": lifetime_stats[7]["value"],
+        "Wins": lifetime_stats[8]["value"],
+        "Win %": lifetime_stats[9]["value"].strip("%"),
+        "Kills": lifetime_stats[10]["value"],
+        "K/D": lifetime_stats[11]["value"]
+        }
+
+    solo_leaderboards[username]["solo"] = {
+        "Matches Played": solo_lifetime_stats["matches"]["value"],
+        "Wins": solo_lifetime_stats["top1"]["value"],
+        "Win %": solo_lifetime_stats["winRatio"]["value"],
+        "Top 10s": solo_lifetime_stats["top10"]["value"],
+        "Top 25s": solo_lifetime_stats["top25"]["value"],
+        "Kills": solo_lifetime_stats["kills"]["value"],
+        "K/D": solo_lifetime_stats["kd"]["value"]
+        }
+
+    solo_leaderboards[username]["duo"] = {
+        "Matches Played": duo_lifetime_stats["matches"]["value"],
+        "Wins": duo_lifetime_stats["top1"]["value"],
+        "Win %": duo_lifetime_stats["winRatio"]["value"],
+        "Top 5s": duo_lifetime_stats["top5"]["value"],
+        "Top 12s": duo_lifetime_stats["top12"]["value"],
+        "Kills": duo_lifetime_stats["kills"]["value"],
+        "K/D": duo_lifetime_stats["kd"]["value"]
+    }
+
+    solo_leaderboards[username]["squads"] = {
+        "Matches Played": squad_lifetime_stats["matches"]["value"],
+        "Wins": squad_lifetime_stats["top1"]["value"],
+        "Win %": squad_lifetime_stats["winRatio"]["value"],
+        "Top 3s": squad_lifetime_stats["top3"]["value"],
+        "Top 6s": squad_lifetime_stats["top6"]["value"],
+        "Kills": squad_lifetime_stats["kills"]["value"],
+        "K/D": squad_lifetime_stats["kd"]["value"]
+    }
+
+    solo_leaderboards[username]["curr_solo"] = {
+        "Matches Played": solo_current_stats["matches"]["value"],
+        "Wins": solo_current_stats["top1"]["value"],
+        "Win %": solo_current_stats["winRatio"]["value"],
+        "Top 10s": solo_current_stats["top10"]["value"],
+        "Top 25s": solo_current_stats["top25"]["value"],
+        "Kills": solo_current_stats["kills"]["value"],
+        "K/D": solo_current_stats["kd"]["value"]
+    }
+
+    solo_leaderboards[username]["curr_duo"] = {
+        "Matches Played": duo_current_stats["matches"]["value"],
+        "Wins": duo_current_stats["top1"]["value"],
+        "Win %": duo_current_stats["winRatio"]["value"],
+        "Top 5s": duo_current_stats["top5"]["value"],
+        "Top 12s": duo_current_stats["top12"]["value"],
+        "Kills": duo_current_stats["kills"]["value"],
+        "K/D": duo_current_stats["kd"]["value"]
+    }
+
+    solo_leaderboards[username]["curr_squads"] = {
+        "Matches Played": squad_current_stats["matches"]["value"],
+        "Wins": squad_current_stats["top1"]["value"],
+        "Win %": squad_current_stats["winRatio"]["value"],
+        "Top 3s": squad_current_stats["top3"]["value"],
+        "Top 6s": squad_current_stats["top6"]["value"],
+        "Kills": squad_current_stats["kills"]["value"],
+        "K/D": squad_current_stats["kd"]["value"]    
+    }
+
+    print(solo_leaderboards[username])
 
 # print out select stats from the raw data dictionary for a given player,
 # will clean this up when I start storing all the data is cleaner dictionaries
