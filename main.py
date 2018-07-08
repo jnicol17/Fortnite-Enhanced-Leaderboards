@@ -10,14 +10,70 @@ solo_leaderboards = {}
 # These leaderboards will be populated with lists of dictionaries of player
 # stats that can then be sorted and displayed
 group_leaderboards = {
-    "Lifetime":[],
-    "SoloStats":[],
-    "DuoStats":[],
-    "SquadStats":[],
-    "CurrSolo":[],
-    "CurrDuo":[],
-    "CurrSquad":[]
+    "Lifetime":{
+        "Matches Played": [],
+        "Wins": [],
+        "Win %": [],
+        "Kills": [],
+        "K/D": []
+    },
+    "SoloStats":{
+        "Matches Played": [],
+        "Wins": [],
+        "Win %": [],
+        "Kills": [],
+        "K/D": []
+    },
+    "DuoStats":{
+        "Matches Played": [],
+        "Wins": [],
+        "Win %": [],
+        "Kills": [],
+        "K/D": []
+    },
+    "SquadStats":{
+        "Matches Played": [],
+        "Wins": [],
+        "Win %": [],
+        "Kills": [],
+        "K/D": []
+    },
+    "CurrSolo":{
+        "Matches Played": [],
+        "Wins": [],
+        "Win %": [],
+        "Kills": [],
+        "K/D": []
+    },
+    "CurrDuo":{
+        "Matches Played": [],
+        "Wins": [],
+        "Win %": [],
+        "Kills": [],
+        "K/D": []
+    },
+    "CurrSquad":{
+        "Matches Played": [],
+        "Wins": [],
+        "Win %": [],
+        "Kills": [],
+        "K/D": []
     }
+}
+
+
+
+group_map = {
+    "Lifetime": "lifeTimeStats",
+    "SoloStats": "p2",
+    "DuoStats": "p10",
+    "SquadStats": "p9",
+    "CurrSolo": "curr_p2",
+    "CurrDuo": "curr_p10",
+    "CurrSquad": "curr_p9"
+}
+
+
 
 # will store raw json data from fortnite tracker for all Players
 # format will be { player name : fortnitetracker data }
@@ -25,39 +81,27 @@ raw_data = {}
 
 # initialize stuff, right now just goes straight to main menu
 def main():
-    menu()
-
-# main menu, user can select what they want to do from here
-def menu():
-    print("[1] Add/Remove Players")
-    print("[2] View Individual Stats")
-    print("[3] View Group Leaderboards")
-
-    selection = input("Enter Corresponding Menu Number: ")
-    if (selection == "1"):
-        add_remove_players()
-    elif (selection == "2"):
-        view_individual_stats()
+    add_players()
+    print_group_stats()
 
 # add or remove a players data from the group leaderboards
-def add_remove_players():
+def add_players():
     names = input("Fortnite Name: ")
     names = names.replace(" ", "")
     name = names.split(",")
 
-    print(name)
+    #print(name)
     for username in name:
         request_string = "https://api.fortnitetracker.com/v1/profile/pc/" + username
         response = requests.get(request_string, headers = config.headers)
         #print(response.text)
         data = response.json()
-        print(username)
+        #print(username)
 
         populate_solo_leaderboards(username, data)
         populate_group_leaderboards(username, data)
 
         sleep(1)
-    menu()
 
 # view the stored stats for a player given the username, currently it asks
 # for the name after the user has already selected this menu item, may
@@ -66,7 +110,6 @@ def add_remove_players():
 def view_individual_stats():
     name = input("Enter Users name: ")
     print_solo_stats(name)
-    menu()
 
 # populate the group leaderboard dictionary
 def populate_solo_leaderboards(username, data):
@@ -158,13 +201,84 @@ def print_solo_stats(username):
             print(keys + ": " + values)
 
 def populate_group_leaderboards(username, data):
-    # add the new member
-    group_leaderboards["Lifetime"].append({"name" : username, "Wins" : data["lifeTimeStats"][8]["value"]})
-    print(group_leaderboards)
 
-    # sort the group leaderboard
-    group_leaderboards["Lifetime"] = sorted(group_leaderboards["Lifetime"], key=itemgetter('Wins'))
-    print(group_leaderboards)
+    # add the new member
+
+    # Need to add lifetime stats separately because they are not indexed the
+    # same way in the data json that we receive from FortniteTracker
+    group_leaderboards["Lifetime"]["Matches Played"].append({"name" : username, "value" : int(data["lifeTimeStats"][7]["value"])})
+    group_leaderboards["Lifetime"]["Wins"].append({"name" : username, "value" : int(data["lifeTimeStats"][8]["value"])})
+    group_leaderboards["Lifetime"]["Win %"].append({"name": username, "value": float(data["lifeTimeStats"][9]["value"].strip("%"))})
+    group_leaderboards["Lifetime"]["Kills"].append({"name": username, "value": int(data["lifeTimeStats"][10]["value"])})
+    group_leaderboards["Lifetime"]["K/D"].append({"name": username, "value": float(data["lifeTimeStats"][11]["value"])})
+    #print(group_leaderboards)
+
+    # For all other stats we can automate the collection using a mapping of
+    # our labels to the data labels
+    for key in group_map.keys():
+        if (key != "Lifetime"):
+            group_leaderboards[key]["Matches Played"].append({
+                "name": username,
+                "value": int(data["stats"][group_map[key]]["matches"]["value"])
+            })
+            group_leaderboards[key]["Wins"].append({
+                "name": username,
+                "value": int(data["stats"][group_map[key]]["top1"]["value"])
+            })
+            group_leaderboards[key]["Win %"].append({
+                "name": username,
+                "value": float(data["stats"][group_map[key]]["winRatio"]["value"])
+            })
+            group_leaderboards[key]["Kills"].append({
+                "name": username,
+                "value": int(data["stats"][group_map[key]]["kills"]["value"])
+            })
+            group_leaderboards[key]["K/D"].append({
+                "name": username,
+                "value": float(data["stats"][group_map[key]]["kd"]["value"])
+            })
+    #print(group_leaderboards)
+    # sort the group Leaderboards
+    for key in group_map.keys():
+        group_leaderboards[key]["Matches Played"] = sorted(
+            group_leaderboards[key]["Matches Played"],
+            key=itemgetter('value'),
+            reverse=True
+        )
+        group_leaderboards[key]["Wins"] = sorted(
+            group_leaderboards[key]["Wins"],
+            key=itemgetter('value'),
+            reverse=True
+        )
+        group_leaderboards[key]["Win %"] = sorted(
+            group_leaderboards[key]["Win %"],
+            key = itemgetter('value'),
+            reverse=True
+        )
+        group_leaderboards[key]["Kills"] = sorted(
+            group_leaderboards[key]["Kills"],
+            key = itemgetter('value'),
+            reverse=True
+        )
+        group_leaderboards[key]["K/D"] = sorted(
+            group_leaderboards[key]["K/D"],
+            key = itemgetter('value'),
+            reverse=True
+        )
+        #print(group_leaderboards[key]["Wins"])
+        #print(group_leaderboards[key]["Win %"])
+        #print(group_leaderboards[key]["Kills"])
+        #print(group_leaderboards[key]["K/D"])
+    #print(group_leaderboards)
+
+def print_group_stats():
+    print("\n")
+    for headers in group_leaderboards:
+        print(headers)
+        for keys, values in group_leaderboards[headers].items():
+            print(keys)
+            for element in values:
+                print(element["name"] + ": " + str(element["value"]))
 
 #program runs here
 if __name__ == '__main__':
@@ -186,11 +300,6 @@ if __name__ == '__main__':
 #   11. Most Kills (Squad)
 #   12. Highest K/d (Squad)
 
-# Some test code for sorting and printing dictionaries
-#print(config.leaderboard["Leaderboards"]["Lifetime"])
-#config.leaderboard["Leaderboards"]["Lifetime"].append({"name": "test", "value": 4})
-#config.leaderboard["Leaderboards"]["Lifetime"].append({"name": "test2", "value": 6})
-#print(config.leaderboard["Leaderboards"]["Lifetime"])
-#newlist = sorted(config.leaderboard["Leaderboards"]["Lifetime"], key=itemgetter('value'), reverse=True)
-#print(newlist)
-#print(newlist[0]["value"])
+# KNOWN ISSUES
+
+# if the user hasnt played in the current season they have no stats for curr_
