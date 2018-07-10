@@ -10,49 +10,49 @@ solo_leaderboards = {}
 # These leaderboards will be populated with lists of dictionaries of player
 # stats that can then be sorted and displayed
 group_leaderboards = {
-    "Lifetime":{
+    "LIFETIME STATS":{
         "Matches Played": [],
         "Wins": [],
         "Win %": [],
         "Kills": [],
         "K/D": []
     },
-    "SoloStats":{
+    "LIFETIME SOLO STATS":{
         "Matches Played": [],
         "Wins": [],
         "Win %": [],
         "Kills": [],
         "K/D": []
     },
-    "DuoStats":{
+    "LIFETIME DUO STATS":{
         "Matches Played": [],
         "Wins": [],
         "Win %": [],
         "Kills": [],
         "K/D": []
     },
-    "SquadStats":{
+    "LIFETIME SQUAD STATS":{
         "Matches Played": [],
         "Wins": [],
         "Win %": [],
         "Kills": [],
         "K/D": []
     },
-    "CurrSolo":{
+    "CURRENT SEASON SOLO STATS":{
         "Matches Played": [],
         "Wins": [],
         "Win %": [],
         "Kills": [],
         "K/D": []
     },
-    "CurrDuo":{
+    "CURRENT SEASON DUO STATS":{
         "Matches Played": [],
         "Wins": [],
         "Win %": [],
         "Kills": [],
         "K/D": []
     },
-    "CurrSquad":{
+    "CURRENT SEASON SQUAD STATS":{
         "Matches Played": [],
         "Wins": [],
         "Win %": [],
@@ -61,19 +61,15 @@ group_leaderboards = {
     }
 }
 
-
-
 group_map = {
-    "Lifetime": "lifeTimeStats",
-    "SoloStats": "p2",
-    "DuoStats": "p10",
-    "SquadStats": "p9",
-    "CurrSolo": "curr_p2",
-    "CurrDuo": "curr_p10",
-    "CurrSquad": "curr_p9"
+    "LIFETIME STATS": "lifeTimeStats",
+    "LIFETIME SOLO STATS": "p2",
+    "LIFETIME DUO STATS": "p10",
+    "LIFETIME SQUAD STATS": "p9",
+    "CURRENT SEASON SOLO STATS": "curr_p2",
+    "CURRENT SEASON DUO STATS": "curr_p10",
+    "CURRENT SEASON SQUAD STATS": "curr_p9"
 }
-
-
 
 # will store raw json data from fortnite tracker for all Players
 # format will be { player name : fortnitetracker data }
@@ -81,12 +77,48 @@ raw_data = {}
 
 # initialize stuff, right now just goes straight to main menu
 def main():
-    add_players()
-    print_group_stats()
+    welcome_message()
+    command = input("Enter Command: ")
+    while(command != "--exit"):
+        if (command == "--help"):
+            help_message()
+        else:
+            add_players(command)
+        #print_group_stats()
+        command = input("Enter Command: ")
+
+def welcome_message():
+    print("Welcome to Fortnite Enhanced Leaderboards by James Nicol")
+    print("Enter '--help' for a list of commands")
+
+def help_message():
+    print("Commands:")
+    print("\n##############################################################\n")
+    print("'--exit' - Exit the program")
+    print("\n##############################################################\n")
+    print("'--players' - view a list of all players current stored", end = "")
+    print("in the system")
+    print("\n##############################################################\n")
+    print("'--stats p_name' - Display stats for player with username p_name")
+    print("\n##############################################################\n")
+    print("'--group p_n1, p_n2' - Display group leaderboards ", end = "")
+    print("for 1 or more players, in this case p_n1 and p_n2")
+    print("\n##############################################################\n")
+    print("'--group all' - Display group leaderboards for all ", end = "")
+    print("players current stored in the system")
+    print("\n##############################################################\n")
+    print("'--remove p_n1, p_n2' - Remove one or more players from ", end = "")
+    print("the system, in this case p_n1 and p_n2")
+    print("\n##############################################################\n")
+    print("'--group all --remove p_n1' - Display group ", end = "")
+    print("leaderboards for all players current stored in the ", end = "")
+    print("system except for p_n1")
+    print("NOTE: This command does not remove p_n1 from the system")
+    print("\n##############################################################\n")
+
 
 # add or remove a players data from the group leaderboards
-def add_players():
-    names = input("Fortnite Name: ")
+def add_players(names):
     names = names.replace(" ", "")
     name = names.split(",")
 
@@ -98,23 +130,19 @@ def add_players():
         data = response.json()
         #print(username)
 
-        populate_solo_leaderboards(username, data)
-        populate_group_leaderboards(username, data)
+        if(username not in solo_leaderboards):
+            populate_solo_leaderboards(username, data)
+            populate_group_leaderboards(username, data)
+            #print_solo_stats(username)
+            sleep(1)
+        else:
+            print(username + " already exists")
 
-        sleep(1)
-
-# view the stored stats for a player given the username, currently it asks
-# for the name after the user has already selected this menu item, may
-# change that so that a user can enter "2 snipe_celly34" to look up
-# snipe_celly34's stats with one command
-def view_individual_stats():
-    name = input("Enter Users name: ")
-    print_solo_stats(name)
 
 # populate the group leaderboard dictionary
 def populate_solo_leaderboards(username, data):
 
-    print("populating leaderboards")
+    print("populating leaderboards for " + username)
     raw_data[username] = data
     solo_leaderboards[username] = {}
 
@@ -128,7 +156,7 @@ def populate_solo_leaderboards(username, data):
         }
 
     solo_lifetime_stats = data["stats"]["p2"]
-    solo_leaderboards[username]["SOLO STATS"] = {
+    solo_leaderboards[username]["LIFETIME SOLO STATS"] = {
         "Matches Played": solo_lifetime_stats["matches"]["value"],
         "Wins": solo_lifetime_stats["top1"]["value"],
         "Win %": solo_lifetime_stats["winRatio"]["value"],
@@ -139,7 +167,7 @@ def populate_solo_leaderboards(username, data):
         }
 
     duo_lifetime_stats = data["stats"]["p10"]
-    solo_leaderboards[username]["DUO STATS"] = {
+    solo_leaderboards[username]["LIFETIME DUO STATS"] = {
         "Matches Played": duo_lifetime_stats["matches"]["value"],
         "Wins": duo_lifetime_stats["top1"]["value"],
         "Win %": duo_lifetime_stats["winRatio"]["value"],
@@ -150,7 +178,7 @@ def populate_solo_leaderboards(username, data):
     }
 
     squad_lifetime_stats = data["stats"]["p9"]
-    solo_leaderboards[username]["SQUADS STATS"] = {
+    solo_leaderboards[username]["LIFETIME SQUADS STATS"] = {
         "Matches Played": squad_lifetime_stats["matches"]["value"],
         "Wins": squad_lifetime_stats["top1"]["value"],
         "Win %": squad_lifetime_stats["winRatio"]["value"],
@@ -206,17 +234,17 @@ def populate_group_leaderboards(username, data):
 
     # Need to add lifetime stats separately because they are not indexed the
     # same way in the data json that we receive from FortniteTracker
-    group_leaderboards["Lifetime"]["Matches Played"].append({"name" : username, "value" : int(data["lifeTimeStats"][7]["value"])})
-    group_leaderboards["Lifetime"]["Wins"].append({"name" : username, "value" : int(data["lifeTimeStats"][8]["value"])})
-    group_leaderboards["Lifetime"]["Win %"].append({"name": username, "value": float(data["lifeTimeStats"][9]["value"].strip("%"))})
-    group_leaderboards["Lifetime"]["Kills"].append({"name": username, "value": int(data["lifeTimeStats"][10]["value"])})
-    group_leaderboards["Lifetime"]["K/D"].append({"name": username, "value": float(data["lifeTimeStats"][11]["value"])})
+    group_leaderboards["LIFETIME STATS"]["Matches Played"].append({"name" : username, "value" : int(data["lifeTimeStats"][7]["value"])})
+    group_leaderboards["LIFETIME STATS"]["Wins"].append({"name" : username, "value" : int(data["lifeTimeStats"][8]["value"])})
+    group_leaderboards["LIFETIME STATS"]["Win %"].append({"name": username, "value": float(data["lifeTimeStats"][9]["value"].strip("%"))})
+    group_leaderboards["LIFETIME STATS"]["Kills"].append({"name": username, "value": int(data["lifeTimeStats"][10]["value"])})
+    group_leaderboards["LIFETIME STATS"]["K/D"].append({"name": username, "value": float(data["lifeTimeStats"][11]["value"])})
     #print(group_leaderboards)
 
     # For all other stats we can automate the collection using a mapping of
     # our labels to the data labels
     for key in group_map.keys():
-        if (key != "Lifetime"):
+        if (key != "LIFETIME STATS"):
             group_leaderboards[key]["Matches Played"].append({
                 "name": username,
                 "value": int(data["stats"][group_map[key]]["matches"]["value"])
@@ -265,14 +293,8 @@ def populate_group_leaderboards(username, data):
             key = itemgetter('value'),
             reverse=True
         )
-        #print(group_leaderboards[key]["Wins"])
-        #print(group_leaderboards[key]["Win %"])
-        #print(group_leaderboards[key]["Kills"])
-        #print(group_leaderboards[key]["K/D"])
-    #print(group_leaderboards)
 
 def print_group_stats():
-    print("\n")
     for headers in group_leaderboards:
         print(headers)
         for keys, values in group_leaderboards[headers].items():
@@ -284,22 +306,11 @@ def print_group_stats():
 if __name__ == '__main__':
     main()
 
-#=============== FUTURE IDEAS ===============#
-
-# Leaderboard ideas
-#   1. Most wins (Total)
-#   2. Most kills (Total)
-#   3. Highest K/d (Total)
-#   4. Most Wins (Solo)
-#   5. Most Kills (Solo)
-#   6. Highest K/d (Solo)
-#   7. Most Wins (Duo)
-#   8. Most Kills (Duo)
-#   9. Highest K/d (Duo)
-#   10. Most Wins (Squad)
-#   11. Most Kills (Squad)
-#   12. Highest K/d (Squad)
+# Next Steps
+# Error checking
+# Command line commands
+# Output formatting
 
 # KNOWN ISSUES
 
-# if the user hasnt played in the current season they have no stats for curr_
+# if the user hasnt played in the current season they have no stats for curr_p2
