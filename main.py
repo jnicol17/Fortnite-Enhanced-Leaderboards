@@ -1,6 +1,7 @@
 import requests
 import config
 import json
+import re
 from time import sleep
 from operator import itemgetter
 
@@ -71,6 +72,15 @@ group_map = {
     "CURRENT SEASON SQUAD STATS": "curr_p9"
 }
 
+input_commands = [
+    "--exit",
+    "--players",
+    "--stats",
+    "--help",
+    "--group",
+    "--remove"
+]
+
 # will store raw json data from fortnite tracker for all Players
 # format will be { player name : fortnitetracker data }
 raw_data = {}
@@ -78,19 +88,58 @@ raw_data = {}
 # initialize stuff, right now just goes straight to main menu
 def main():
     welcome_message()
-    command = input("Enter Command: ")
-    while(command != "--exit"):
-        if (command == "--help"):
-            help_message()
-        else:
-            add_players(command)
-        #print_group_stats()
-        command = input("Enter Command: ")
 
+    # regex parsing the input, we divide commands by two delimeters,
+    # commas and spaces (any number of them)
+    command = re.split("[, ]+", input("Enter Command: "))
+    # we only want to exit when --exit is entered as the only command
+    # the or condition means that we don't accept commands such as
+    # "--exit rtedsadasd" because the length of the command is > 1
+    # conditions are only met when command[0] is "--exit" and the
+    # length is 1
+    while(command[0] != "--exit" or len(command) > 1):
+        # if the first input is not a valid command, display an error message
+        if (command[0] not in input_commands):
+            print("Invalid command, enter '--help' for valid commands")
+        # display help message
+        elif (command[0] == "--help"):
+            help_message()
+        # display a list of players currently stored in dictionary
+        elif (command[0] == '--players'):
+            print("printing a list of players")
+
+        # display stats for player with name in command[1], if the player
+        # is not in the system, query FortniteTracker API. If nothing is
+        # returned then return an error message. If the player is in the
+        # system already, pull their existing data (not stored outside of
+        # runtime so not a big deal)
+        elif (command[0] == '--stats'):
+            print("printing stats for p_name")
+
+        # display group leaderboards based on input parameters
+        elif (command[0] == '--group'):
+            print("group leaderboard commands")
+            # using lazy evalutation here to prevent errors
+            if (len(command) > 1 and command[1] == '--players'):
+                print("all command entered")
+                if (len(command) > 2 and command[2] == '--remove'):
+                    print("group all command with remove players")
+
+        # remove a players data from storage, not sure why this would be
+        # super useful because data is not stored outside of runtime but
+        # good to have the option
+        elif (command[0] == '--remove'):
+            print("removing one or more player")
+
+        print(command)
+        command = re.split("[, ]+", input("Enter Command: "))
+
+# Message that the user sees on startup
 def welcome_message():
     print("Welcome to Fortnite Enhanced Leaderboards by James Nicol")
     print("Enter '--help' for a list of commands")
 
+# help message to explain all available commands with examples
 def help_message():
     print("Commands:")
     print("\n##############################################################\n")
@@ -104,13 +153,13 @@ def help_message():
     print("'--group p_n1, p_n2' - Display group leaderboards ", end = "")
     print("for 1 or more players, in this case p_n1 and p_n2")
     print("\n##############################################################\n")
-    print("'--group all' - Display group leaderboards for all ", end = "")
+    print("'--group --players' - Display group leaderboards for all ", end = "")
     print("players current stored in the system")
     print("\n##############################################################\n")
     print("'--remove p_n1, p_n2' - Remove one or more players from ", end = "")
     print("the system, in this case p_n1 and p_n2")
     print("\n##############################################################\n")
-    print("'--group all --remove p_n1' - Display group ", end = "")
+    print("'--group --players --remove p_n1' - Display group ", end = "")
     print("leaderboards for all players current stored in the ", end = "")
     print("system except for p_n1")
     print("NOTE: This command does not remove p_n1 from the system")
