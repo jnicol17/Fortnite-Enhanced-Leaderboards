@@ -98,23 +98,24 @@ def main():
     # conditions are only met when command[0] is "--exit" and the
     # length is 1
     while(command[0] != "--exit" or len(command) > 1):
-        # if the first input is not a valid command, display an error message
-        if (command[0] not in input_commands):
-            print("Invalid command, enter '--help' for valid commands")
         # display help message
-        elif (command[0] == "--help"):
+        if (command[0] == "--help"):
             help_message()
         # display a list of players currently stored in dictionary
-        elif (command[0] == '--players'):
-            print("printing a list of players")
+        elif (command[0] == '--players' and len(command) == 1):
+                print("printing a list of players")
+                for player in solo_leaderboards:
+                    print(player)
 
         # display stats for player with name in command[1], if the player
         # is not in the system, query FortniteTracker API. If nothing is
         # returned then return an error message. If the player is in the
         # system already, pull their existing data (not stored outside of
         # runtime so not a big deal)
-        elif (command[0] == '--stats'):
-            print("printing stats for p_name")
+        elif (command[0] == '--stats'and len(command) == 2):
+                print("printing stats for " + command[1])
+                if (add_players(command[1]) == 1):
+                    print_solo_stats(command[1])
 
         # display group leaderboards based on input parameters
         elif (command[0] == '--group'):
@@ -124,6 +125,24 @@ def main():
                 print("all command entered")
                 if (len(command) > 2 and command[2] == '--remove'):
                     print("group all command with remove players")
+                    group = list(solo_leaderboards)
+                    print(group)
+                    #for key in solo_leaderboards.keys():
+                        #group.append(key)
+                    for i in range (3, len(command)):
+                        print(command[i])
+                        group.remove(command[i])
+                    print_group_stats(group)
+                else:
+                    print("all command entered")
+                    print_group_stats_all()
+            else:
+                print("just group leaderboards")
+                group = []
+                for i in range (1, len(command)):
+                    if (add_players(command[i]) == 1):
+                        group.append(command[i])
+                print_group_stats(group)
 
         # remove a players data from storage, not sure why this would be
         # super useful because data is not stored outside of runtime but
@@ -131,7 +150,12 @@ def main():
         elif (command[0] == '--remove'):
             print("removing one or more player")
 
-        print(command)
+        # if the first input is not a valid command, display an error message
+        else:
+            #if (command[0] not in input_commands):
+            print("Invalid command, enter '--help' for valid commands")
+
+        #print(command)
         command = re.split("[, ]+", input("Enter Command: "))
 
 # Message that the user sees on startup
@@ -178,14 +202,18 @@ def add_players(names):
         #print(response.text)
         data = response.json()
         #print(username)
-
-        if(username not in solo_leaderboards):
-            populate_solo_leaderboards(username, data)
-            populate_group_leaderboards(username, data)
-            #print_solo_stats(username)
-            sleep(1)
+        if ('error' in data and data['error'] == "Player Not Found"):
+            print(username + " is not a valid name")
+            return 0
         else:
-            print(username + " already exists")
+            if(username not in solo_leaderboards):
+                populate_solo_leaderboards(username, data)
+                populate_group_leaderboards(username, data)
+                #print_solo_stats(username)
+                sleep(1)
+            else:
+                print(username + " already exists")
+            return 1
 
 
 # populate the group leaderboard dictionary
@@ -343,7 +371,16 @@ def populate_group_leaderboards(username, data):
             reverse=True
         )
 
-def print_group_stats():
+def print_group_stats(usernames):
+    for headers in group_leaderboards:
+        print(headers)
+        for keys, values in group_leaderboards[headers].items():
+            print(keys)
+            for element in values:
+                if (element["name"] in usernames):
+                    print(element["name"] + ": " + str(element["value"]))
+
+def print_group_stats_all():
     for headers in group_leaderboards:
         print(headers)
         for keys, values in group_leaderboards[headers].items():
