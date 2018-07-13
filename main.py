@@ -149,6 +149,12 @@ def main():
         # good to have the option
         elif (command[0] == '--remove'):
             print("removing one or more player")
+            for i in range (1, len(command)):
+                if (command[i] not in solo_leaderboards):
+                    print(command[i] + " is not being stored")
+                else:
+                    remove_from_solo(command[i])
+                    remove_from_group(command[i])
 
         # if the first input is not a valid command, display an error message
         else:
@@ -223,80 +229,87 @@ def populate_solo_leaderboards(username, data):
     raw_data[username] = data
     solo_leaderboards[username] = {}
 
-    lifetime_stats = data["lifeTimeStats"]
-    solo_leaderboards[username]["LIFETIME STATS"] = {
-        "Matches Played": lifetime_stats[7]["value"],
-        "Wins": lifetime_stats[8]["value"],
-        "Win %": lifetime_stats[9]["value"].strip("%"),
-        "Kills": lifetime_stats[10]["value"],
-        "K/D": lifetime_stats[11]["value"]
+    if ("lifetimeStats" in data):
+        lifetime_stats = data["lifeTimeStats"]
+        solo_leaderboards[username]["LIFETIME STATS"] = {
+            "Matches Played": lifetime_stats[7]["value"],
+            "Wins": lifetime_stats[8]["value"],
+            "Win %": lifetime_stats[9]["value"].strip("%"),
+            "Kills": lifetime_stats[10]["value"],
+            "K/D": lifetime_stats[11]["value"]
         }
 
-    solo_lifetime_stats = data["stats"]["p2"]
-    solo_leaderboards[username]["LIFETIME SOLO STATS"] = {
-        "Matches Played": solo_lifetime_stats["matches"]["value"],
-        "Wins": solo_lifetime_stats["top1"]["value"],
-        "Win %": solo_lifetime_stats["winRatio"]["value"],
-        "Top 10s": solo_lifetime_stats["top10"]["value"],
-        "Top 25s": solo_lifetime_stats["top25"]["value"],
-        "Kills": solo_lifetime_stats["kills"]["value"],
-        "K/D": solo_lifetime_stats["kd"]["value"]
+    if ("p2" in data["stats"]):
+        solo_lifetime_stats = data["stats"]["p2"]
+        solo_leaderboards[username]["LIFETIME SOLO STATS"] = {
+            "Matches Played": solo_lifetime_stats["matches"]["value"],
+            "Wins": solo_lifetime_stats["top1"]["value"],
+            "Win %": solo_lifetime_stats["winRatio"]["value"],
+            "Top 10s": solo_lifetime_stats["top10"]["value"],
+            "Top 25s": solo_lifetime_stats["top25"]["value"],
+            "Kills": solo_lifetime_stats["kills"]["value"],
+            "K/D": solo_lifetime_stats["kd"]["value"]
         }
 
-    duo_lifetime_stats = data["stats"]["p10"]
-    solo_leaderboards[username]["LIFETIME DUO STATS"] = {
-        "Matches Played": duo_lifetime_stats["matches"]["value"],
-        "Wins": duo_lifetime_stats["top1"]["value"],
-        "Win %": duo_lifetime_stats["winRatio"]["value"],
-        "Top 5s": duo_lifetime_stats["top5"]["value"],
-        "Top 12s": duo_lifetime_stats["top12"]["value"],
-        "Kills": duo_lifetime_stats["kills"]["value"],
-        "K/D": duo_lifetime_stats["kd"]["value"]
-    }
+    if ("p10" in data["stats"]):
+        duo_lifetime_stats = data["stats"]["p10"]
+        solo_leaderboards[username]["LIFETIME DUO STATS"] = {
+            "Matches Played": duo_lifetime_stats["matches"]["value"],
+            "Wins": duo_lifetime_stats["top1"]["value"],
+            "Win %": duo_lifetime_stats["winRatio"]["value"],
+            "Top 5s": duo_lifetime_stats["top5"]["value"],
+            "Top 12s": duo_lifetime_stats["top12"]["value"],
+            "Kills": duo_lifetime_stats["kills"]["value"],
+            "K/D": duo_lifetime_stats["kd"]["value"]
+        }
 
-    squad_lifetime_stats = data["stats"]["p9"]
-    solo_leaderboards[username]["LIFETIME SQUADS STATS"] = {
-        "Matches Played": squad_lifetime_stats["matches"]["value"],
-        "Wins": squad_lifetime_stats["top1"]["value"],
-        "Win %": squad_lifetime_stats["winRatio"]["value"],
-        "Top 3s": squad_lifetime_stats["top3"]["value"],
-        "Top 6s": squad_lifetime_stats["top6"]["value"],
-        "Kills": squad_lifetime_stats["kills"]["value"],
-        "K/D": squad_lifetime_stats["kd"]["value"]
-    }
+    if ("p9" in data["stats"]):
+        squad_lifetime_stats = data["stats"]["p9"]
+        solo_leaderboards[username]["LIFETIME SQUADS STATS"] = {
+            "Matches Played": squad_lifetime_stats["matches"]["value"],
+            "Wins": squad_lifetime_stats["top1"]["value"],
+            "Win %": squad_lifetime_stats["winRatio"]["value"],
+            "Top 3s": squad_lifetime_stats["top3"]["value"],
+            "Top 6s": squad_lifetime_stats["top6"]["value"],
+            "Kills": squad_lifetime_stats["kills"]["value"],
+            "K/D": squad_lifetime_stats["kd"]["value"]
+        }
 
-    solo_current_stats = data["stats"]["curr_p2"]
-    solo_leaderboards[username]["CURRENT SEASON SOLO STATS"] = {
-        "Matches Played": solo_current_stats["matches"]["value"],
-        "Wins": solo_current_stats["top1"]["value"],
-        "Win %": solo_current_stats["winRatio"]["value"],
-        "Top 10s": solo_current_stats["top10"]["value"],
-        "Top 25s": solo_current_stats["top25"]["value"],
-        "Kills": solo_current_stats["kills"]["value"],
-        "K/D": solo_current_stats["kd"]["value"]
-    }
+    if ("curr_p2" in data["stats"]):
+        solo_current_stats = data["stats"]["curr_p2"]
+        solo_leaderboards[username]["CURRENT SEASON SOLO STATS"] = {
+            "Matches Played": solo_current_stats["matches"]["value"],
+            "Wins": solo_current_stats["top1"]["value"],
+            "Win %": solo_current_stats["winRatio"]["value"],
+            "Top 10s": solo_current_stats["top10"]["value"],
+            "Top 25s": solo_current_stats["top25"]["value"],
+            "Kills": solo_current_stats["kills"]["value"],
+            "K/D": solo_current_stats["kd"]["value"]
+        }
 
-    duo_current_stats = data["stats"]["curr_p10"]
-    solo_leaderboards[username]["CURRENT SEASON DUO STATS"] = {
-        "Matches Played": duo_current_stats["matches"]["value"],
-        "Wins": duo_current_stats["top1"]["value"],
-        "Win %": duo_current_stats["winRatio"]["value"],
-        "Top 5s": duo_current_stats["top5"]["value"],
-        "Top 12s": duo_current_stats["top12"]["value"],
-        "Kills": duo_current_stats["kills"]["value"],
-        "K/D": duo_current_stats["kd"]["value"]
-    }
+    if ("curr_p10" in data["stats"]):
+        duo_current_stats = data["stats"]["curr_p10"]
+        solo_leaderboards[username]["CURRENT SEASON DUO STATS"] = {
+            "Matches Played": duo_current_stats["matches"]["value"],
+            "Wins": duo_current_stats["top1"]["value"],
+            "Win %": duo_current_stats["winRatio"]["value"],
+            "Top 5s": duo_current_stats["top5"]["value"],
+            "Top 12s": duo_current_stats["top12"]["value"],
+            "Kills": duo_current_stats["kills"]["value"],
+            "K/D": duo_current_stats["kd"]["value"]
+        }
 
-    squad_current_stats = data["stats"]["curr_p9"]
-    solo_leaderboards[username]["CURRENT SEASON SQUAD STATS"] = {
-        "Matches Played": squad_current_stats["matches"]["value"],
-        "Wins": squad_current_stats["top1"]["value"],
-        "Win %": squad_current_stats["winRatio"]["value"],
-        "Top 3s": squad_current_stats["top3"]["value"],
-        "Top 6s": squad_current_stats["top6"]["value"],
-        "Kills": squad_current_stats["kills"]["value"],
-        "K/D": squad_current_stats["kd"]["value"]
-    }
+    if ("curr_p9" in data["stats"]):
+        squad_current_stats = data["stats"]["curr_p9"]
+        solo_leaderboards[username]["CURRENT SEASON SQUAD STATS"] = {
+            "Matches Played": squad_current_stats["matches"]["value"],
+            "Wins": squad_current_stats["top1"]["value"],
+            "Win %": squad_current_stats["winRatio"]["value"],
+            "Top 3s": squad_current_stats["top3"]["value"],
+            "Top 6s": squad_current_stats["top6"]["value"],
+            "Kills": squad_current_stats["kills"]["value"],
+            "K/D": squad_current_stats["kd"]["value"]
+        }
 
 # print the solo stats for a given username
 def print_solo_stats(username):
@@ -322,26 +335,27 @@ def populate_group_leaderboards(username, data):
     # our labels to the data labels
     for key in group_map.keys():
         if (key != "LIFETIME STATS"):
-            group_leaderboards[key]["Matches Played"].append({
-                "name": username,
-                "value": int(data["stats"][group_map[key]]["matches"]["value"])
-            })
-            group_leaderboards[key]["Wins"].append({
-                "name": username,
-                "value": int(data["stats"][group_map[key]]["top1"]["value"])
-            })
-            group_leaderboards[key]["Win %"].append({
-                "name": username,
-                "value": float(data["stats"][group_map[key]]["winRatio"]["value"])
-            })
-            group_leaderboards[key]["Kills"].append({
-                "name": username,
-                "value": int(data["stats"][group_map[key]]["kills"]["value"])
-            })
-            group_leaderboards[key]["K/D"].append({
-                "name": username,
-                "value": float(data["stats"][group_map[key]]["kd"]["value"])
-            })
+            if (group_map[key] in data["stats"]):
+                group_leaderboards[key]["Matches Played"].append({
+                    "name": username,
+                    "value": int(data["stats"][group_map[key]]["matches"]["value"])
+                })
+                group_leaderboards[key]["Wins"].append({
+                    "name": username,
+                    "value": int(data["stats"][group_map[key]]["top1"]["value"])
+                })
+                group_leaderboards[key]["Win %"].append({
+                    "name": username,
+                    "value": float(data["stats"][group_map[key]]["winRatio"]["value"])
+                })
+                group_leaderboards[key]["Kills"].append({
+                    "name": username,
+                    "value": int(data["stats"][group_map[key]]["kills"]["value"])
+                })
+                group_leaderboards[key]["K/D"].append({
+                    "name": username,
+                    "value": float(data["stats"][group_map[key]]["kd"]["value"])
+                })
     #print(group_leaderboards)
     # sort the group Leaderboards
     for key in group_map.keys():
@@ -387,6 +401,23 @@ def print_group_stats_all():
             print(keys)
             for element in values:
                 print(element["name"] + ": " + str(element["value"]))
+
+def remove_from_solo(user):
+    #remove user from solo leaderboards
+    del solo_leaderboards[user]
+
+
+def remove_from_group(user):
+    #remove user from group leaderboards
+    for headers in group_leaderboards:
+        for keys in group_leaderboards[headers]:
+            for i in range(0, len(group_leaderboards[headers][keys])):
+                #print(group_leaderboards[headers][keys][i])
+                if (group_leaderboards[headers][keys][i]['name'] == user):
+                    print(group_leaderboards[headers][keys])
+                    del group_leaderboards[headers][keys][i]
+                    print(group_leaderboards[headers][keys])
+                    break
 
 #program runs here
 if __name__ == '__main__':
