@@ -62,6 +62,36 @@ group_leaderboards = {
     }
 }
 
+field_map_solo = {
+    "Matches Played": "matches",
+    "Wins": "top1",
+    "Win %": "winRatio",
+    "Top 10s": "top10",
+    "Top 25s": "top25",
+    "Kills": "kills",
+    "K/D": "kd"
+}
+
+field_map_duo = {
+    "Matches Played": "matches",
+    "Wins": "top1",
+    "Win %": "winRatio",
+    "Top 5s": "top5",
+    "Top 12s": "top12",
+    "Kills": "kills",
+    "K/D": "kd"
+}
+
+field_map_squad = {
+    "Matches Played": "matches",
+    "Wins": "top1",
+    "Win %": "winRatio",
+    "Top 3s": "top3",
+    "Top 6s": "top6",
+    "Kills": "kills",
+    "K/D": "kd"
+}
+
 group_map = {
     "LIFETIME STATS": "lifeTimeStats",
     "LIFETIME SOLO STATS": "p2",
@@ -99,7 +129,7 @@ def main():
     # length is 1
     while(command[0] != "--exit" or len(command) > 1):
         # display help message
-        if (command[0] == "--help"):
+        if (command[0] == "--help" and len(command) == 1):
             help_message()
         # display a list of players currently stored in dictionary
         elif (command[0] == '--players' and len(command) == 1):
@@ -119,25 +149,26 @@ def main():
 
         # display group leaderboards based on input parameters
         elif (command[0] == '--group'):
-            print("group leaderboard commands")
             # using lazy evalutation here to prevent errors
             if (len(command) > 1 and command[1] == '--players'):
-                print("all command entered")
                 if (len(command) > 2 and command[2] == '--remove'):
-                    print("group all command with remove players")
                     group = list(solo_leaderboards)
-                    print(group)
-                    #for key in solo_leaderboards.keys():
-                        #group.append(key)
-                    for i in range (3, len(command)):
-                        print(command[i])
-                        group.remove(command[i])
-                    print_group_stats(group)
-                else:
-                    print("all command entered")
+                    if (group == []):
+                        print("No players to remove")
+                    else:
+                        #for key in solo_leaderboards.keys():
+                            #group.append(key)
+                        for i in range (3, len(command)):
+                            if (command[i] in group):
+                                group.remove(command[i])
+                            else:
+                                print(command[i] + " is not being stored")
+                        print_group_stats(group)
+                elif (len(command) == 2 and command[1] == '--players'):
                     print_group_stats_all()
+                else:
+                    print("Invalid command, enter '--help' for valid commands")
             else:
-                print("just group leaderboards")
                 group = []
                 for i in range (1, len(command)):
                     if (add_players(command[i]) == 1):
@@ -148,7 +179,6 @@ def main():
         # super useful because data is not stored outside of runtime but
         # good to have the option
         elif (command[0] == '--remove'):
-            print("removing one or more player")
             for i in range (1, len(command)):
                 if (command[i] not in solo_leaderboards):
                     print(command[i] + " is not being stored")
@@ -239,77 +269,19 @@ def populate_solo_leaderboards(username, data):
             "K/D": lifetime_stats[11]["value"]
         }
 
-    if ("p2" in data["stats"]):
-        solo_lifetime_stats = data["stats"]["p2"]
-        solo_leaderboards[username]["LIFETIME SOLO STATS"] = {
-            "Matches Played": solo_lifetime_stats["matches"]["value"],
-            "Wins": solo_lifetime_stats["top1"]["value"],
-            "Win %": solo_lifetime_stats["winRatio"]["value"],
-            "Top 10s": solo_lifetime_stats["top10"]["value"],
-            "Top 25s": solo_lifetime_stats["top25"]["value"],
-            "Kills": solo_lifetime_stats["kills"]["value"],
-            "K/D": solo_lifetime_stats["kd"]["value"]
-        }
-
-    if ("p10" in data["stats"]):
-        duo_lifetime_stats = data["stats"]["p10"]
-        solo_leaderboards[username]["LIFETIME DUO STATS"] = {
-            "Matches Played": duo_lifetime_stats["matches"]["value"],
-            "Wins": duo_lifetime_stats["top1"]["value"],
-            "Win %": duo_lifetime_stats["winRatio"]["value"],
-            "Top 5s": duo_lifetime_stats["top5"]["value"],
-            "Top 12s": duo_lifetime_stats["top12"]["value"],
-            "Kills": duo_lifetime_stats["kills"]["value"],
-            "K/D": duo_lifetime_stats["kd"]["value"]
-        }
-
-    if ("p9" in data["stats"]):
-        squad_lifetime_stats = data["stats"]["p9"]
-        solo_leaderboards[username]["LIFETIME SQUADS STATS"] = {
-            "Matches Played": squad_lifetime_stats["matches"]["value"],
-            "Wins": squad_lifetime_stats["top1"]["value"],
-            "Win %": squad_lifetime_stats["winRatio"]["value"],
-            "Top 3s": squad_lifetime_stats["top3"]["value"],
-            "Top 6s": squad_lifetime_stats["top6"]["value"],
-            "Kills": squad_lifetime_stats["kills"]["value"],
-            "K/D": squad_lifetime_stats["kd"]["value"]
-        }
-
-    if ("curr_p2" in data["stats"]):
-        solo_current_stats = data["stats"]["curr_p2"]
-        solo_leaderboards[username]["CURRENT SEASON SOLO STATS"] = {
-            "Matches Played": solo_current_stats["matches"]["value"],
-            "Wins": solo_current_stats["top1"]["value"],
-            "Win %": solo_current_stats["winRatio"]["value"],
-            "Top 10s": solo_current_stats["top10"]["value"],
-            "Top 25s": solo_current_stats["top25"]["value"],
-            "Kills": solo_current_stats["kills"]["value"],
-            "K/D": solo_current_stats["kd"]["value"]
-        }
-
-    if ("curr_p10" in data["stats"]):
-        duo_current_stats = data["stats"]["curr_p10"]
-        solo_leaderboards[username]["CURRENT SEASON DUO STATS"] = {
-            "Matches Played": duo_current_stats["matches"]["value"],
-            "Wins": duo_current_stats["top1"]["value"],
-            "Win %": duo_current_stats["winRatio"]["value"],
-            "Top 5s": duo_current_stats["top5"]["value"],
-            "Top 12s": duo_current_stats["top12"]["value"],
-            "Kills": duo_current_stats["kills"]["value"],
-            "K/D": duo_current_stats["kd"]["value"]
-        }
-
-    if ("curr_p9" in data["stats"]):
-        squad_current_stats = data["stats"]["curr_p9"]
-        solo_leaderboards[username]["CURRENT SEASON SQUAD STATS"] = {
-            "Matches Played": squad_current_stats["matches"]["value"],
-            "Wins": squad_current_stats["top1"]["value"],
-            "Win %": squad_current_stats["winRatio"]["value"],
-            "Top 3s": squad_current_stats["top3"]["value"],
-            "Top 6s": squad_current_stats["top6"]["value"],
-            "Kills": squad_current_stats["kills"]["value"],
-            "K/D": squad_current_stats["kd"]["value"]
-        }
+    for key in group_map.keys():
+        if (key != "LIFETIME STATS"):
+            if(group_map[key] in data["stats"]):
+                solo_leaderboards[username][key] = {}
+                if (group_map[key] == "p2" or group_map[key] == "curr_p2"):
+                    for fields in field_map_solo:
+                        solo_leaderboards[username][key][fields] = data["stats"][group_map[key]][field_map_solo[fields]]["value"]
+                elif (group_map[key] == "p10" or group_map[key] == "curr_p10"):
+                    for fields in field_map_duo:
+                        solo_leaderboards[username][key][fields] = data["stats"][group_map[key]][field_map_duo[fields]]["value"]
+                elif (group_map[key] == "p9" or group_map[key] == "curr_p9"):
+                    for fields in field_map_squad:
+                        solo_leaderboards[username][key][fields] = data["stats"][group_map[key]][field_map_squad[fields]]["value"]
 
 # print the solo stats for a given username
 def print_solo_stats(username):
